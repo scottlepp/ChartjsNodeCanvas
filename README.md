@@ -14,7 +14,7 @@ Provides and alternative to [chartjs-node](https://www.npmjs.com/package/chartjs
 3. [Limitations](#Limitations)
 4. [API](#API)
 5. [Usage](#Usage)
-6. [Full Example](#Full%20Example)
+6. [Kitchen Sink Example](#Kitchen%20Sink%20Example)
 7. [Known Issues](#Known%20Issues)
 
 ## Installation
@@ -70,18 +70,24 @@ const { CanvasRenderService } = require('chartjs-node-canvas');
 ### Custom Charts
 
 Just use the ChartJS reference in the callback:
+
 ```js
 const canvasRenderService = new CanvasRenderService(width, height, (ChartJS) => {
     // New chart type example: https://www.chartjs.org/docs/latest/developers/charts.html
-    ChartJS.controllers.MyType = Chart.DatasetController.extend({
+    ChartJS.controllers.MyType = ChartJS.DatasetController.extend({
         // chart implementation
     });
+    // Note that if you have your chart implementation somewhere else (eg separate file), you MUST ensure
+    // that each time the above is executed you have a separate instance.
+    // This is because each 'CanvasRenderService' runs a separate instance of ChartJS and you do not want to
+    // share instances of charts across these!
 });
 ```
 
 ### Global Config
 
 Just use the ChartJS reference in the callback:
+
 ```js
 const canvasRenderService = new CanvasRenderService(width, height, (ChartJS) => {
     // Global config example: https://www.chartjs.org/docs/latest/configuration/
@@ -92,6 +98,7 @@ const canvasRenderService = new CanvasRenderService(width, height, (ChartJS) => 
 ### Custom Fonts
 
 Just use the `registerFont` method:
+
 ```js
 const canvasRenderService = new CanvasRenderService(width, height, (ChartJS) => {
     // Just example usage
@@ -100,6 +107,7 @@ const canvasRenderService = new CanvasRenderService(width, height, (ChartJS) => 
 // Register before renderering any charts
 canvasRenderService.registerFont('./testData/VTKS UNAMOUR.ttf', { family: 'VTKS UNAMOUR' });
 ```
+
 See the node-canvas [docs](https://github.com/Automattic/node-canvas#registerfont) and the chart js [docs](https://www.chartjs.org/docs/latest/general/fonts.html).
 
 ### Loading plugins
@@ -107,6 +115,7 @@ See the node-canvas [docs](https://github.com/Automattic/node-canvas#registerfon
 #### Newer plugins
 
 Just use the ChartJS reference in the callback:
+
 ```js
 const canvasRenderService = new CanvasRenderService(width, height, (ChartJS) => {
     // Global plugin example: https://www.chartjs.org/docs/latest/developers/plugins.html
@@ -120,59 +129,67 @@ const canvasRenderService = new CanvasRenderService(width, height, (ChartJS) => 
 
 The key to getting older plugins working is knowing that this package uses an equivalent to [fresh-require](https://www.npmjs.com/package/fresh-require) by default to retrieve its version of `chart.js`.
 
-There are some tools you can use to solve any issues with the way older ChartJS plugins that do not use the newer global plugin registration API, and instead either load chartjs itself or expect a global variable:
+There are some tools you can use to solve any issues with the way older ChartJS plugins work, that do not use the newer global plugin registration API, and instead either load chartjs itself or expect a global variable:
 
 ---
 
-1. Temporary global variable for ChartJs:
+##### Temporary global variable for ChartJs
+
 ```js
 const canvasRenderService = new CanvasRenderService(width, height, (ChartJS) => {
-	global.Chart = ChartJS;
-	require('<chart plugin>');
-	delete global.Chart;
+    global.Chart = ChartJS;
+    require('<chart plugin>');
+    delete global.Chart;
 });
 ```
+
 This should work for any plugin that expects a global Chart variable.
 
 ---
 
-2. Chart factory function for `CanvasRenderService`:
+##### Chart factory function for `CanvasRenderService`
+
 ```js
 const chartJsFactory = () => {
-	const chartJS = require('chart.js');
-	require('<chart plugin>');
-        // Clear the require cache so to allow `CanvasRenderService` seperate instances of ChartJS and plugins.
-	delete require.cache[require.resolve('chart.js')];
-	delete require.cache[require.resolve('chart plugin')];
-	return chartJS;
+    const chartJS = require('chart.js');
+    require('<chart plugin>');
+        // Clear the require cache so to allow `CanvasRenderService` separate instances of ChartJS and plugins.
+    delete require.cache[require.resolve('chart.js')];
+    delete require.cache[require.resolve('chart plugin')];
+    return chartJS;
 };
 const canvasRenderService = new CanvasRenderService(width, height, undefined, undefined, chartJsFactory);
 ```
+
 This will work for plugins that `require` ChartJS themselves.
 
 ---
 
-3. Register plugin directly with ChartJS:
+##### Register plugin directly with ChartJS
+
 ```js
 const freshRequire = require('fresh-require');
 
 const canvasRenderService = new CanvasRenderService(width, height, (ChartJS) => {
-	// Use 'fresh-require' to allow `CanvasRenderService` seperate instances of ChartJS and plugins.
-	ChartJS.plugins.register(freshRequire('<chart plugin>', require));
+    // Use 'fresh-require' to allow `CanvasRenderService` separate instances of ChartJS and plugins.
+    ChartJS.plugins.register(freshRequire('<chart plugin>', require));
 });
 ```
+
 This will work with plugins that just return a plugin object and do no specific loading themselves.
 
 ---
 
-These approaches can be combined also.
+The above approaches can be combined also, if required.
 
-## Full Example
+## Kitchen Sink Example
 
 ```js
 
+const freshRequire = require('fresh-require');
 const { CanvasRenderService } = require('chartjs-node-canvas');
 
+const customFont = '<custom font>';
 const width = 400;
 const height = 400;
 const configuration = {
@@ -213,21 +230,38 @@ const configuration = {
     }
 };
 const chartCallback = (ChartJS) => {
-
     // Global config example: https://www.chartjs.org/docs/latest/configuration/
     ChartJS.defaults.global.elements.rectangle.borderWidth = 2;
-    // Global plugin example: https://www.chartjs.org/docs/latest/developers/plugins.html
-    ChartJS.plugins.register({
-        // plugin implementation
-    });
+    // Custom font registration
+    ChartJS.defaults.global.defaultFontFamily = customFont;
     // New chart type example: https://www.chartjs.org/docs/latest/developers/charts.html
     ChartJS.controllers.MyType = ChartJS.DatasetController.extend({
-        // chart implementation
+        // my chart implementation
     });
+    // Global plugin example: https://www.chartjs.org/docs/latest/developers/plugins.html
+    ChartJS.plugins.register({
+        // my plugin implementation
+    });
+    // This plugin uses the new Plugin API
+    ChartJS.plugins.register(freshRequire('<3rd party chart plugin>', require));
+    // This plugin expects a global variable 'Chart'
+    global.Chart = ChartJS;
+    require('<legacy 3rd party chart plugin>');
+    delete global.Chart;
+};
+
+const chartJsFactory = () => {
+    // This plugin calls require('chart.js') itself
+    const chartJS = require('chart.js');
+    require('<other 3rd party chart plugin>');
+    delete require.cache[require.resolve('chart.js')];
+    delete require.cache[require.resolve('<other 3rd party chart plugin>')];
+    return chartJS;
 };
 
 (async () => {
-    const canvasRenderService = new CanvasRenderService(width, height, chartCallback);
+    const canvasRenderService = new CanvasRenderService(width, height, chartCallback, undefined, chartJsFactory);
+    canvasRenderService.registerFont('<custom font path>', { family: customFont });
     const image = await canvasRenderService.renderToBuffer(configuration);
     const dataUrl = await canvasRenderService.renderToDataURL(configuration);
     const stream = canvasRenderService.renderToStream(configuration);
