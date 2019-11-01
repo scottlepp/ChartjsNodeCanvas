@@ -50,3 +50,11 @@ dist/**/*.spec.*
 
 #typescript build cache
 .tsbuildinfo
+
+#temp files
+*.tmp
+
+#test files
+*-actual.png
+*-diff.png
+*-expected.png
