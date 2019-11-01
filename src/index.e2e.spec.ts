@@ -24,7 +24,7 @@ describe(CanvasRenderService.name, () => {
 		throw new Error(info.reason);
 	});
 
-	console.log(`Running integration tests in ${isLocal ? 'local' : 'CI'} mode.`)
+	console.log(`Running integration tests in ${isLocal ? 'local' : 'CI'} mode.`);
 
 	const colours = {
 		black: 'rgb(0, 0, 0)',
@@ -387,15 +387,15 @@ describe(CanvasRenderService.name, () => {
 		return [...Array(count).keys()];
 	}
 
-	function hashCode(string: string): number {
+	function hashCode(text: string): number {
 
 		// tslint:disable: no-bitwise no-let
 		let hash = 0;
-		if (string.length === 0) {
+		if (text.length === 0) {
 			return hash;
 		}
-		for (let i = 0; i < string.length; i++) {
-			const chr = string.charCodeAt(i);
+		for (let i = 0; i < text.length; i++) {
+			const chr = text.charCodeAt(i);
 			hash = ((hash << 5) - hash) + chr;
 			hash |= 0; // Convert to 32bit integer
 		}
