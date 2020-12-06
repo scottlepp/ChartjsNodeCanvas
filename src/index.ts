@@ -1,14 +1,13 @@
 import { Readable } from 'stream';
 import { Chart as ChartJS, ChartConfiguration } from 'chart.js';
 import { createCanvas, registerFont } from 'canvas';
-import { freshRequire } from './freshRequire';
 
 export type ChartCallback = (chartJS: typeof ChartJS) => void | Promise<void>;
 export type CanvasType = 'pdf' | 'svg';
 export type MimeType = 'image/png' | 'image/jpeg';
 export type ChartJsFactory = () => typeof ChartJS;
 
-const defaultChartJsFactory: ChartJsFactory = () => freshRequire('chart.js');
+const defaultChartJsFactory: ChartJsFactory = () => require('chart.js');
 
 // https://github.com/Automattic/node-canvas#non-standard-apis
 type Canvas	= HTMLCanvasElement & {
@@ -28,6 +27,7 @@ export class CanvasRenderService {
 	private readonly _registerFont: typeof registerFont;
 	private readonly _type?: CanvasType;
 
+	
 	/**
 	 * Create a new instance of CanvasRenderService.
 	 *
@@ -42,7 +42,7 @@ export class CanvasRenderService {
 		this._width = width;
 		this._height = height;
 		this._chartJs = (chartJsFactory || defaultChartJsFactory)();
-		const canvas = freshRequire('canvas');
+		const canvas = require('canvas');
 		this._createCanvas = canvas.createCanvas;
 		this._registerFont = canvas.registerFont;
 		this._type = type;

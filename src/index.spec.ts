@@ -1,7 +1,7 @@
 import { Assert } from 'ts-std-lib';
 import { describe, it } from 'mocha';
 import { ChartConfiguration } from 'chart.js';
-import { freshRequire } from './freshRequire';
+// import { freshRequire } from './freshRequire';
 
 import { CanvasRenderService, ChartCallback, CanvasType, MimeType, ChartJsFactory } from './';
 
@@ -62,7 +62,7 @@ describe(CanvasRenderService.name, () => {
 		} as any
 	};
 	const nullCanvasChartJsFactory: ChartJsFactory = () => {
-		const ChartJs = freshRequire('chart.js');
+		const ChartJs = require('chart.js');
 		return class extends ChartJs {
 			constructor(context: any, configuration: any) {
 				super(context, configuration);

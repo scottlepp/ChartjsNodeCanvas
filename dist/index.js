@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const freshRequire_1 = require("./freshRequire");
-const defaultChartJsFactory = () => freshRequire_1.freshRequire('chart.js');
+const defaultChartJsFactory = () => require('chart.js');
 class CanvasRenderService {
     /**
      * Create a new instance of CanvasRenderService.
@@ -16,7 +15,7 @@ class CanvasRenderService {
         this._width = width;
         this._height = height;
         this._chartJs = (chartJsFactory || defaultChartJsFactory)();
-        const canvas = freshRequire_1.freshRequire('canvas');
+        const canvas = require('canvas');
         this._createCanvas = canvas.createCanvas;
         this._registerFont = canvas.registerFont;
         this._type = type;

@@ -7,7 +7,7 @@ import { Readable } from 'stream';
 import { describe, it } from 'mocha';
 import { Stream } from 'stream';
 import { ChartConfiguration } from 'chart.js';
-import { freshRequire } from './freshRequire';
+// import { freshRequire } from './freshRequire';
 import resemble from 'node-resemble-js';
 
 import { CanvasRenderService, ChartCallback } from './';
@@ -106,7 +106,7 @@ describe(CanvasRenderService.name, () => {
 	it('works with registering plugin', async () => {
 		const canvasRenderService = new CanvasRenderService(width, height, (ChartJS) => {
 			// (global as any).Chart = ChartJS;
-			ChartJS.plugins.register(freshRequire('chartjs-plugin-annotation'));
+			ChartJS.plugins.register(require('chartjs-plugin-annotation'));
 			// delete (global as any).Chart;
 		});
 		const actual = await canvasRenderService.renderToBuffer({
